@@ -13,7 +13,7 @@ import torch
 from qwen_vl_utils import process_vision_info
 from transformers import AutoProcessor, Qwen2_5_VLForConditionalGeneration, TextIteratorStreamer
 
-DEFAULT_CKPT_PATH = 'Qwen/Qwen2.5-VL-7B-Instruct'
+DEFAULT_CKPT_PATH = 'Qwen/Qwen2.5-VL-3B-Instruct'
 
 
 def _get_args():
@@ -56,9 +56,9 @@ def _load_model_processor(args):
         model = Qwen2_5_VLForConditionalGeneration.from_pretrained(args.checkpoint_path,
                                                                 torch_dtype='auto',
                                                                 attn_implementation='flash_attention_2',
-                                                                device_map=device_map)
+                                                                device_map=device_map,load_in_8bit=True)
     else:
-        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(args.checkpoint_path, device_map=device_map)
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(args.checkpoint_path, device_map=device_map,load_in_8bit=True)
 
     processor = AutoProcessor.from_pretrained(args.checkpoint_path)
     return model, processor
@@ -146,7 +146,7 @@ def _launch_demo(args, model, processor):
         inputs = inputs.to(model.device)
 
         tokenizer = processor.tokenizer
-        streamer = TextIteratorStreamer(tokenizer, timeout=20.0, skip_prompt=True, skip_special_tokens=True)
+        streamer = TextIteratorStreamer(tokenizer, timeout=200.0, skip_prompt=True, skip_special_tokens=True)
 
         gen_kwargs = {'max_new_tokens': 512, 'streamer': streamer, **inputs}
 
@@ -280,10 +280,12 @@ including hate speech, violence, pornography, deception, etc. \
 包括但不限于仇恨言论、暴力、色情、欺诈相关的有害信息。)""")
 
     demo.queue().launch(
-        share=args.share,
+        server_name="0.0.0.0",  # 全インターフェースで待ち受け
+        share=True,             # Gradio が public URL も生成
+        # share=args.share,
         inbrowser=args.inbrowser,
         server_port=args.server_port,
-        server_name=args.server_name,
+        # server_name=args.server_name,
     )
 
 
