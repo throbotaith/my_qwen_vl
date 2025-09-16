@@ -981,6 +981,25 @@ To simplify the deploy process, we provide docker images with pre-build environm
 docker run --gpus all --ipc=host --network=host --rm --name qwen2.5 -it qwenllm/qwenvl:2.5-cu121 bash
 ```
 
+### Run the Web Demo in Docker
+
+Follow the steps below to launch the Qwen2.5-VL web demo inside the official Docker image. (日本語の説明も併記しています)
+
+1. **Download a checkpoint** (例: `Qwen2.5-VL-7B-Instruct`) and make sure the directory contains the model files such as `config.json`.
+2. **Start the demo container** by running the helper script and pointing it to the checkpoint directory:
+
+   ```bash
+   bash docker/docker_web_demo.sh \
+     -c /absolute/path/to/Qwen2.5-VL-7B-Instruct \
+     --port 8901
+   ```
+
+   * `-i` / `--image-name` で使用するDockerイメージを切り替えられます (デフォルト: `qwenllm/qwenvl:2.5-cu121`)。
+   * `-n` / `--container-name` でコンテナ名を変更できます。
+   * `--port` でホスト側の公開ポートを指定します。上記の例では `http://localhost:8901` にアクセスしてデモを確認できます。
+
+   The script automatically pulls the image, mounts your checkpoint, and starts the demo service. Use `docker logs <container>` to check the status, and `docker rm -f <container>` to stop the service when you are done.
+
 ## Citation
 
 If you find our paper and code useful in your research, please consider giving a star :star: and citation :pencil: :)
